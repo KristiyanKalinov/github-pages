@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервизна поръчка</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            font-size: 14px;
+        }
+        .receipt {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .header, .footer {
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+        .receipt .header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .footer {
+            font-size: 10px;
+            margin-top: 15px;
+            border: 1px solid #ccc;
+        }
+        .details {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .details .table-container {
+            width: 48%;
+            border: 1px solid #ccc;
+        }
+        .details table {
+            width: 90%;
+            border-collapse: collapse;
+        }
+        .details table, .details th, .details td {
+            border: 1px solid #ddd;
+        }
+        .details th, .details td {
+            padding: 5px;
+            text-align: left;
+        }
+        .details table td input {
+            margin: 0;
+            padding: 4px;
+        }
+        .total {
+            font-weight: bold;
+            margin-top: 15px;
+            text-align: right;
+        }
+        .input-field {
+            width: 70%;
+            padding: 2px;
+            margin-left: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .btn {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .form-row {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .form-row label {
+            width: 22%;
+            text-align: right;
+            margin-right: 5px;
+        }
+
+        @media print {
+            .button-container, .btn {
+                display: none;
+            }
+            .receipt {
+                width: 98%;
+                margin: 0;
+                padding: 10px;
+                border: none;
+            }
+            @page {
+                margin: 0;
+            }
+            body {
+                margin: 0;
+            }
+            * {
+                -webkit-print-color-adjust: exact;
+            }
+
+            input[type="number"]::-webkit-outer-spin-button,
+            input[type="number"]::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            input[type="number"] {
+                -moz-appearance: textfield;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .receipt {
+                width: 95%;
+            }
+            .details {
+                flex-direction: column;
+            }
+        }
+
+        .hide-delete-btn {
+            display: none;
+        }
+
+        .signature-row {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #servicesTable td input[type="text"] {
+            width: 500px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+        }
+
+        .service-wrapper {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 3px;
+            margin-top: 15px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="receipt" id="receiptContent">
+    <div class="header">
+        <h1>Сервизна поръчка</h1>
+        <p>Дата: <span id="date"></span></p>
+    </div>
+
+    <form id="receiptForm">
+        <div class="details">
+            <div class="table-container">
+                <h3>Информация за клиента</h3>
+                <div class="form-row">
+                    <label for="customerName">Имена:</label>
+                    <input type="text" id="customerName" class="input-field" value="">
+                </div>
+                <div class="form-row">
+                    <label for="customerAddress">Адрес :</label>
+                    <input type="text" id="customerAddress" class="input-field" value="">
+                </div>
+                <div class="form-row">
+                    <label for="customerPhone">Телефон:</label>
+                    <input type="text" id="customerPhone" class="input-field" value="+359">
+                </div>
+                <div class="form-row">
+                    <label for="carBrand">Марка:</label>
+                    <input type="text" id="carBrand" class="input-field" value="">
+                </div>
+                <div class="form-row">
+                    <label for="carModel">Модел:</label>
+                    <input type="text" id="carModel" class="input-field" value="">
+                </div>
+                <div class="form-row">
+                    <label for="carMileage">Километри:</label>
+                    <input type="number" id="carMileage" class="input-field" value="">
+                </div>
+                <div class="form-row">
+                    <label for="VIN">Номер на рама:</label>
+                    <input type="text" id="VIN" class="input-field" value="">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h3 class="section-title">Информация за сервиза</h3>
+                <div class="form-row">
+                    <label for="serviceName">Име на сервиза:</label>
+                    <input type="text" id="serviceName" class="input-field" value="Автоцентър ДАНА ООД">
+                </div>
+                <div class="form-row">
+                    <label for="serviceAddress">Адрес на сервиза:</label>
+                    <input type="text" id="serviceAddress" class="input-field" value="ул. Зора 5, гр.Русе">
+                </div>
+                <div class="form-row">
+                    <label for="servicePerson">Имена на отговорните лица:</label>
+                    <input type="text" id="servicePerson" class="input-field" value="Виктор Рангелов">
+                </div>
+                <div class="form-row">
+                    <label for="servicePhone">Телефон за връзка:</label>
+                    <input type="text" id="servicePhone" class="input-field" value="+359876666996">
+                </div>
+                <div class="form-row">
+                    <label for="serviceEmail">Имейл:</label>
+                    <input type="email" id="serviceEmail" class="input-field" value="victordhrobo@gmail.com">
+                </div>
+            </div>
+        </div>
+
+        <div class="service-wrapper">
+            <h3>Информация за услугата</h3>
+            <table id="servicesTable">
+                <thead>
+                    <tr>
+                        <th>Описание на услуга</th>
+                        <th>Цена (лв)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="text" class="input-field" value="" style="width: 500px;"></td>
+                        <td><input type="number" class="input-field" value=""></td>
+                        <td><button type="button" class="btn" onclick="deleteService(this)">Изтрий</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        
+            <div class="total">
+                <p>Обща сума: <span id="totalAmount">0.00</span> лв. с ДДС</p>
+            </div>
+        </div>
+
+        <div class="signature-row">
+            <div class="signature">Подпис на клиент: ................</div>
+            <div class="signature">Подпис на представител: ................</div>
+        </div>
+    </form>
+
+    <div class="button-container">
+        <button class="btn" onclick="updateTotal()">Обнови сума</button>
+        <button class="btn" onclick="addNewService()">Добави нова услуга</button>
+        <button class="btn" onclick="printReceipt()">Принтиране</button>
+        <button class="btn" onclick="saveAsPDF()">Запиши като PDF</button>
+    </div>
+</div>
+
+<script>
+    function updateTotal() {
+        const rows = document.querySelectorAll('#servicesTable tbody tr');
+        let total = 0;
+
+        rows.forEach(row => {
+            const priceInput = row.querySelector('td:nth-child(2) input');
+            let price = parseFloat(priceInput.value);
+
+            if (!isNaN(price) && price >= 0) {
+                total += price;
+            }
+        });
+
+        document.getElementById('totalAmount').textContent = total.toFixed(2);
+    }
+
+    document.querySelector('#servicesTable tbody').addEventListener('input', (event) => {
+        if (event.target && event.target.type === 'number') {
+            updateTotal();
+        }
+    });
+
+    const date = new Date().toLocaleDateString('bg-BG');
+    document.getElementById('date').textContent = date;
+
+    function printReceipt() {
+        window.print();
+    }
+
+    function saveAsPDF() {
+        const customerName = document.getElementById('customerName').value;
+        const date = new Date().toLocaleDateString('bg-BG').replace(/\//g, '-');
+
+        const filename = `сервизна_поръчка_${customerName}_${date}.pdf`;
+
+        const deleteButtons = document.querySelectorAll('.btn');
+        deleteButtons.forEach(button => button.classList.add('hide-delete-btn'));
+
+        const buttons = document.querySelectorAll('.button-container');
+        buttons.forEach(button => button.style.display = 'none');
+        
+        const element = document.getElementById('receiptContent');
+        const options = {
+            filename: filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 4 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf(element, options).then(() => {
+            deleteButtons.forEach(button => button.classList.remove('hide-delete-btn'));
+            buttons.forEach(button => button.style.display = 'block');
+        });
+    }
+
+    function addNewService() {
+        const table = document.getElementById('servicesTable').getElementsByTagName('tbody')[0];
+        const newRow = table.insertRow();
+
+        const cell1 = newRow.insertCell(0);
+        const cell2 = newRow.insertCell(1);
+        const cell3 = newRow.insertCell(2);
+
+        const serviceInput = document.createElement('input');
+        serviceInput.type = 'text';
+        serviceInput.className = 'input-field';
+        serviceInput.value = '';
+        serviceInput.style.width = '500px';
+        cell1.appendChild(serviceInput);
+
+        const priceInput = document.createElement('input');
+        priceInput.type = 'number';
+        priceInput.className = 'input-field';
+        priceInput.value = '';
+        cell2.appendChild(priceInput);
+
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'btn';
+        deleteButton.textContent = 'Изтрий';
+        deleteButton.onclick = function() { deleteService(deleteButton); };
+        cell3.appendChild(deleteButton);
+    }
+
+    function deleteService(button) {
+        const row = button.closest('tr');
+        row.remove();
+        updateTotal();
+    }
+</script>
+
+</body>
+</html>

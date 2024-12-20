@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бележки за поръчки</title>
+    <style>
+        /* Основен стил за тялото */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* Контейнер за съдържанието */
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        /* Заглавие */
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        /* Формата за добавяне на поръчка */
+        .order-box {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .order-input {
+            width: 75%;
+            padding: 12px;
+            font-size: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            margin-right: 10px;
+            outline: none;
+        }
+
+        .order-input:focus {
+            border-color: #4CAF50;
+        }
+
+        .order-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .order-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Списък с поръчки */
+        .order-list {
+            margin-top: 20px;
+        }
+
+        .order-list h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .order-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .order-list li {
+            background-color: #f9f9f9;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-list li.completed {
+            background-color: #e0f7e7;
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .order-date {
+            font-size: 0.9rem;
+            color: #888;
+            margin-right: 10px;
+        }
+
+        .button-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .complete-btn,
+        .delete-btn {
+            padding: 8px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .complete-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+
+        .complete-btn:hover {
+            background-color: #45a049;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+        }
+
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .order-history {
+            margin-top: 40px;
+        }
+
+        .order-history h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .order-history ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .order-history li {
+            background-color: #f1f1f1;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Бележки за поръчки</h1>
+
+        <div class="order-box">
+            <input type="text" id="orderInput" class="order-input" placeholder="Напишете поръчка">
+            <button class="order-button" onclick="addOrder()">Добави поръчка</button>
+        </div>
+
+        <div class="order-list">
+            <h2>Активни поръчки</h2>
+            <ul id="orderList"></ul>
+        </div>
+
+        <div class="order-history">
+            <h2>История на изпълнените поръчки</h2>
+            <ul id="orderHistory"></ul>
+        </div>
+    </div>
+
+    <script>
+        // Функция за форматиране на дата и час
+        function formatDate() {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+
+        // Функция за зареждане на поръчките от LocalStorage
+        function loadOrders() {
+            const activeOrders = JSON.parse(localStorage.getItem('activeOrders')) || [];
+            const completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+
+            // Зареждаме активни поръчки
+            activeOrders.forEach(order => {
+                addOrderToList(order.text, order.date, true);  // Поставяме isActive като true, за да покажем бутона "Готово"
+            });
+
+            // Зареждаме завършени поръчки
+            completedOrders.forEach(order => {
+                addOrderToHistory(order.text, order.date);
+            });
+        }
+
+        // Функция за добавяне на поръчка в активния списък
+        function addOrder() {
+            const orderInput = document.getElementById('orderInput');
+            const orderText = orderInput.value.trim();
+            
+            if (orderText !== '') {
+                const orderDate = formatDate();
+
+                // Добавяме поръчката в активния списък
+                addOrderToList(orderText, orderDate, true);
+
+                // Записваме поръчката в LocalStorage
+                const activeOrders = JSON.parse(localStorage.getItem('activeOrders')) || [];
+                activeOrders.push({ text: orderText, date: orderDate });
+                localStorage.setItem('activeOrders', JSON.stringify(activeOrders));
+
+                orderInput.value = ''; // Изчистваме полето за въвеждане
+            }
+        }
+
+        // Функция за добавяне на поръчка в активния списък (HTML)
+        function addOrderToList(orderText, orderDate, isActive) {
+            const orderList = document.getElementById('orderList');
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `${orderText} <span class="order-date">(${orderDate})</span>`;
+            
+            // Бутон "Готово" (за активни поръчки)
+            if (isActive) {
+                const completeButton = document.createElement('button');
+                completeButton.textContent = 'Готово';
+                completeButton.classList.add('complete-btn');
+                completeButton.onclick = function() {
+                    completeOrder(listItem, orderText, orderDate);
+                };
+                listItem.appendChild(completeButton);
+            }
+
+            // Бутон "Изтрий"
+            const deleteButton = document.createElement('span');
+            deleteButton.textContent = 'Изтрий';
+            deleteButton.classList.add('delete-btn');
+            deleteButton.onclick = function() {
+                deleteOrder(listItem, orderText, orderDate, isActive);
+            };
+            listItem.appendChild(deleteButton);
+
+            orderList.appendChild(listItem);
+        }
+
+        // Функция за преминаване на поръчката в историята
+        function completeOrder(orderItem, orderText, orderDate) {
+            const orderHistory = document.getElementById('orderHistory');
+            
+            // Добавяме поръчката в историята със зачертан текст
+            addOrderToHistory(orderText, orderDate);
+
+            // Премахваме поръчката от активния списък
+            orderItem.remove();
+
+            // Записваме в LocalStorage
+            let activeOrders = JSON.parse(localStorage.getItem('activeOrders')) || [];
+            activeOrders = activeOrders.filter(order => order.text !== orderText);
+            localStorage.setItem('activeOrders', JSON.stringify(activeOrders));
+
+            const completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+            completedOrders.push({ text: orderText, date: orderDate });
+            localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
+        }
+
+        // Функция за добавяне на поръчка в историята (HTML)
+        function addOrderToHistory(orderText, orderDate) {
+            const orderHistory = document.getElementById('orderHistory');
+            const historyItem = document.createElement('li');
+            historyItem.innerHTML = `${orderText} <span class="order-date">(${orderDate})</span>`;
+            historyItem.classList.add('completed');
+            orderHistory.appendChild(historyItem);
+        }
+
+        // Функция за изтриване на поръчка
+        function deleteOrder(orderItem, orderText, orderDate, isActive) {
+            // Премахваме поръчката от интерфейса
+            orderItem.remove();
+
+            // Премахваме поръчката от LocalStorage
+            if (isActive) {
+                let activeOrders = JSON.parse(localStorage.getItem('activeOrders')) || [];
+                activeOrders = activeOrders.filter(order => order.text !== orderText);
+                localStorage.setItem('activeOrders', JSON.stringify(activeOrders));
+            } else {
+                let completedOrders = JSON.parse(localStorage.getItem('completedOrders')) || [];
+                completedOrders = completedOrders.filter(order => order.text !== orderText);
+                localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
+            }
+        }
+
+        // Зареждаме поръчките при стартиране на страницата
+        window.onload = loadOrders;
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>График на заетост</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    label {
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    input, select, button {
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 16px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .delete-button {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+
+    .delete-button:hover {
+      background-color: #e53935;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        width: 90%;
+      }
+
+      label, input, select, button {
+        font-size: 14px;
+      }
+
+      table, th, td {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h2>График на заетост</h2>
+
+<div class="container">
+  <label for="date">Избери дата:</label>
+  <input type="date" id="date" name="date" required>
+
+  <label for="time">Избери час:</label>
+  <select id="time" required>
+    <option value="08:00">08:00</option>
+    <option value="09:00">09:00</option>
+    <option value="10:00">10:00</option>
+    <option value="11:00">11:00</option>
+    <option value="12:00">12:00</option>
+    <option value="13:00">13:00</option>
+    <option value="14:00">14:00</option>
+    <option value="15:00">15:00</option>
+    <option value="16:00">16:00</option>
+    <option value="17:00">17:00</option>
+    <option value="18:00">18:00</option>
+  </select>
+
+  <label for="event">Събитие:</label>
+  <input type="text" id="event" placeholder="Опишете събитието" required>
+
+  <button id="saveButton">Запази</button>
+</div>
+
+<h3>Записани събития:</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Дата</th>
+      <th>Ден</th>
+      <th>Час</th>
+      <th>Събитие</th>
+      <th>Действие</th>
+    </tr>
+  </thead>
+  <tbody id="scheduleTable">
+    <!-- Събитията ще се добавят тук -->
+  </tbody>
+</table>
+
+<script>
+  // Функция за записване на събитие в localStorage
+  function saveEvent() {
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+    const event = document.getElementById("event").value;
+
+    if (date && time && event) {
+      const events = JSON.parse(localStorage.getItem("events")) || [];
+
+      // Добавяме новото събитие
+      events.push({ date, time, event });
+
+      // Записваме актуализирания масив обратно в localStorage
+      localStorage.setItem("events", JSON.stringify(events));
+
+      // Обновяваме таблицата
+      displayEvents();
+    } else {
+      alert("Моля, попълнете всички полета.");
+    }
+  }
+
+  // Функция за извличане на деня от седмицата
+  function getDayOfWeek(date) {
+    const daysOfWeek = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"];
+    const d = new Date(date);
+    return daysOfWeek[d.getDay()];
+  }
+
+  // Функция за изтриване на събитие
+  function deleteEvent(index) {
+    const events = JSON.parse(localStorage.getItem("events")) || [];
+
+    // Премахваме събитието по индекс
+    events.splice(index, 1);
+
+    // Записваме обновените събития обратно в localStorage
+    localStorage.setItem("events", JSON.stringify(events));
+
+    // Обновяваме таблицата
+    displayEvents();
+  }
+
+  // Функция за показване на събитията в таблицата
+  function displayEvents() {
+    const scheduleTable = document.getElementById("scheduleTable");
+    scheduleTable.innerHTML = "";
+
+    const events = JSON.parse(localStorage.getItem("events")) || [];
+    const today = new Date().toISOString().split('T')[0]; // Формат на датата "YYYY-MM-DD"
+
+    events.forEach((event, index) => {
+      // Пропускаме събития от минали дати
+      if (event.date >= today) {
+        const row = document.createElement("tr");
+
+        // Добавяме деня от седмицата към събитието
+        const dayOfWeek = getDayOfWeek(event.date);
+
+        row.innerHTML = `
+          <td>${event.date}</td>
+          <td>${dayOfWeek}</td>
+          <td>${event.time}</td>
+          <td>${event.event}</td>
+          <td><button class="delete-button" onclick="deleteEvent(${index})">Изтрий</button></td>
+        `;
+        scheduleTable.appendChild(row);
+      }
+    });
+  }
+
+  // Събитие за запазване на ново събитие
+  document.getElementById("saveButton").addEventListener("click", saveEvent);
+
+  // Показване на записаните събития при зареждане на страницата
+  window.onload = displayEvents;
+</script>
+
+</body>
+</html>

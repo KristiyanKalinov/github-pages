@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>АВТОЦЕНТЪР ДАНА ООД</title>
+    <style>
+        /* Основни стилове за страницата */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Стилове за менюто */
+        .menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 10px 0;
+            z-index: 1000;
+        }
+
+        .menu ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+            margin: 0;
+        }
+
+        .menu ul li {
+            display: inline-block;
+            margin: 0 15px;
+        }
+
+        .menu ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            display: block;
+            text-align: center;
+        }
+
+        .menu ul li a:hover {
+            background-color: #575757;
+        }
+
+        /* Стилове за съдържанието */
+        .content {
+            padding-top: 60px; /* За да не се засенчи съдържанието от менюто */
+        }
+
+        .iframe {
+            width: 100%;
+            height: 900px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Фиксирано меню отгоре -->
+    <div class="menu">
+        <ul>
+            <li><a href="grafik.html" target="iframeContent">График</a></li>
+            <li><a href="fixporuchka.html" target="iframeContent">Сервизна Поръчка</a></li>
+            <li><a href="autoservice-poruchka.html" target="iframeContent">Бележки</a></li>
+        </ul>
+    </div>
+
+    <!-- Съдържание с iframe -->
+    <div class="content">
+        <iframe name="iframeContent" src="grafik.html" class="iframe"></iframe>
+    </div>
+
+</body>
+</html>
